@@ -20,3 +20,5 @@ how many people likes john
 whom does mary like
 how many human beings does mary like
 
+does sam like mary
+does sam like dexter

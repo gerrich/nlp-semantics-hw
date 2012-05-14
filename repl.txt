@@ -4,7 +4,7 @@ S::(B)(A) -> NPWH:=B VP:=A
 S::(\z.S) !-> S/NP/Z:=S
 S/NP/Z::(B)(A) -> NP:=A VP/Z:=B
 
-SQ::(\a.A) -> AUX S:=A
+SQ::(Check(A)) -> AUX S:=A
 S::(B) -> SQ:=B 
 
 NP::(A) -> NN:=A

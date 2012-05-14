@@ -93,7 +93,11 @@ class SqlGenerator:
         
         func, args = node.uncurry()
         if str(func) == 'Count':
-          generator = self.make_select(args[0], count_modifier = True)
+          generator = self.make_select(args[0], modifier = 'Count')
+          for item in generator:
+              yield item
+        elif str(func) == 'Check':
+          generator = self.make_select(nodes.Lambda(None, args[0]), modifier = 'Check')
           for item in generator:
               yield item
         else:
@@ -122,7 +126,7 @@ class SqlGenerator:
 
               yield "INSERT INTO %s VALUES %s" % (table_clause, values_clause)
 
-    def make_select(self, node, count_modifier = False):
+    def make_select(self, node, modifier = None):
         self.type = "SELECT"
 
         variables, body = node.uncurry()
@@ -130,11 +134,16 @@ class SqlGenerator:
         self._visit_combinator(self._visit_function(body))
         self._induce_variable_constraints()
 
-        result_clause = 'COUNT(*)'
-        if count_modifier == False:
+        result_clause = ''
+        if modifier == 'Count':
+          result_clause = 'COUNT(*)'
+        if modifier == 'Check':
+          result_clause = 'CASE WHEN COUNT(*)!=0 THEN "YES" ELSE "NO" END'
+        else:
             result_clause = ", ".join(map(
                 lambda kv: "%s AS %s" % (self.resolve_value(list(kv[1])[0]), kv[0]),
                 self.variables.items()))
+
         from_clause = ", ".join(map(
             lambda t: "%s AS %s" % t,
             self.tables))
