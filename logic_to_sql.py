@@ -90,32 +90,39 @@ class SqlGenerator:
 
     def make_insert(self, node):
         self.type = "INSERT"
-        self._visit_combinator(self._visit_function(node))
+        
+        func, args = node.uncurry()
+        if str(func) == 'Count':
+          generator = self.make_select(args[0], count_modifier = True)
+          for item in generator:
+              yield item
+        else:
+          self._visit_combinator(self._visit_function(node))
 
-        original_table_names = set(map(operator.itemgetter(0), self.tables))
-        mapped_table_names = set(map(operator.itemgetter(1), self.tables))
+          original_table_names = set(map(operator.itemgetter(0), self.tables))
+          mapped_table_names = set(map(operator.itemgetter(1), self.tables))
 
-        if len(original_table_names) != len(mapped_table_names):
-            raise RuntimeError, "Expression is too complex to be converted into a single insert statement."
+          if len(original_table_names) != len(mapped_table_names):
+              raise RuntimeError, "Expression is too complex to be converted into a single insert statement."
 
-        reverse_table_mapping = dict(map(lambda x: (x[1], x[0]), self.tables))
+          reverse_table_mapping = dict(map(lambda x: (x[1], x[0]), self.tables))
 
-        inserted_values = defaultdict(list)
+          inserted_values = defaultdict(list)
 
-        for table, column, value in self.constraints:
-            inserted_values[table].append( (self.resolve_column(table, column), self.resolve_value(value)) )
-        for table in inserted_values.iterkeys():
-            columns_and_values = inserted_values[table]
+          for table, column, value in self.constraints:
+              inserted_values[table].append( (self.resolve_column(table, column), self.resolve_value(value)) )
+          for table in inserted_values.iterkeys():
+              columns_and_values = inserted_values[table]
 
-            columns = map(operator.itemgetter(0), columns_and_values)
-            values = map(operator.itemgetter(1), columns_and_values)
+              columns = map(operator.itemgetter(0), columns_and_values)
+              values = map(operator.itemgetter(1), columns_and_values)
 
-            table_clause = "%s(%s)" % (reverse_table_mapping[table], ", ".join(columns))
-            values_clause = "(%s)" % (", ".join(values))
+              table_clause = "%s(%s)" % (reverse_table_mapping[table], ", ".join(columns))
+              values_clause = "(%s)" % (", ".join(values))
 
-            yield "INSERT INTO %s VALUES %s" % (table_clause, values_clause)
+              yield "INSERT INTO %s VALUES %s" % (table_clause, values_clause)
 
-    def make_select(self, node):
+    def make_select(self, node, count_modifier = False):
         self.type = "SELECT"
 
         variables, body = node.uncurry()
@@ -123,17 +130,19 @@ class SqlGenerator:
         self._visit_combinator(self._visit_function(body))
         self._induce_variable_constraints()
 
-        result_clause = ", ".join(map(
-            lambda kv: "%s AS %s" % (self.resolve_value(list(kv[1])[0]), kv[0]),
-            self.variables.items()))
+        result_clause = 'COUNT(*)'
+        if count_modifier == False:
+            result_clause = ", ".join(map(
+                lambda kv: "%s AS %s" % (self.resolve_value(list(kv[1])[0]), kv[0]),
+                self.variables.items()))
         from_clause = ", ".join(map(
             lambda t: "%s AS %s" % t,
             self.tables))
         where_clause = " AND ".join(map(
             lambda c: "%s = %s" % (self.resolve_value(c[0:2]), self.resolve_value(c[2])), 
             self.constraints))
-
-        yield "SELECT {0} FROM {1} WHERE {2}".format(result_clause, from_clause, where_clause)
+        query = "SELECT {0} FROM {1} WHERE {2}".format(result_clause, from_clause, where_clause)
+        yield query
 
     def make_sql(self, node):
         generator = None

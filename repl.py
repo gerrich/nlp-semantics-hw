@@ -87,7 +87,7 @@ There are a few service commands:
     def cmd_eval(self, semantics):
         for query in logic_to_sql.SqlGenerator().make_sql(semantics):
             for row in self._execute(query):
-                print ":", " ".join(row)
+                print ":", " ".join([str(item) for item in row])
 
     def emptyline(self):
         pass

@@ -4,12 +4,17 @@ S::(B)(A) -> NPWH:=B VP:=A
 S::(\z.S) !-> S/NP/Z:=S
 S/NP/Z::(B)(A) -> NP:=A VP/Z:=B
 
+SQ::(\a.A) -> AUX S:=A
+S::(B) -> SQ:=B 
+
 NP::(A) -> NN:=A
-NP -> NP:=A AND NP:=A
+NP::(A&&A) -> NP:=A AND NP:=A
 
 VP::(B)(A) -> V:=B NP:=A
+
 VP::(\x.A(x)&&B(x)) -> VP:=A AND VP:=B
 VP::(\x.A(x)||B(x)) -> VP:=A OR VP:=B
+
 VP/Z::(B)(z) -> V:=B
 VP/Z::(\x.A(x)&&B(x)) -> VP/Z:=A AND VP/Z:=B
 
@@ -20,12 +25,20 @@ V::(\y.\x.Hates(x,y)) -> hates
 
 NPWH::(\P.P) -> whom
 NPWH::(\P.P) -> who
+NPWH::(\P.Count(P)) -> how much OBJ_TYPE
+NPWH::(\P.Count(P)) -> how many OBJ_TYPE
 
 NN::John -> john
 NN::Mary -> mary
 NN::Sam  -> sam
+NN::Dexter -> dexter
+NN::Hero -> hero
 
 AND -> and
 
 AUX -> do
 AUX -> does
+
+OBJ_TYPE -> people
+OBJ_TYPE -> human beings
+

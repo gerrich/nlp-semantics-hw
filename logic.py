@@ -34,6 +34,9 @@ def on_symbol(string, location, tokens):
 def on_application_expression(string, location, tokens):
     return reduce(nodes.Application, tokens)
 
+def on_count_expression(string, location, tokens):
+    return reduce(nodes.Application, tokens)
+
 def on_lambda_expression(string, location, tokens):
     assert(len(tokens) == 2)
     return nodes.Lambda(*tokens)
@@ -112,6 +115,8 @@ FormulaExpression = Forward()
 FormulaExpression.setParseAction(on_formula_expression)
 LambdaExpression = Forward()
 LambdaExpression.setParseAction(on_lambda_expression)
+CountExpression = Forward()
+CountExpression.setParseAction(on_count_expression)
 ParenthesizedExpression = Forward()
 
 ApplicationExpression << (
@@ -136,6 +141,10 @@ LambdaExpression << (
     Suppress("\\") + (JustIndividualVariable | JustFunctionalVariable) + Suppress(".") + Expression
 )
 
+CountExpression << (
+    LeftP + Suppress("\\C.C") + ApplicationExpression + RightP
+)
+
 ParenthesizedExpression << (
     LeftP + Expression + RightP
 )
@@ -149,6 +158,7 @@ ApplicationExpression.setName("application_expression")
 AtomicExpression.setName("atomic_expression")
 FormulaExpression.setName("formula_expression")
 LambdaExpression.setName("binding_expression")
+CountExpression.setName("count_expression")
 ParenthesizedExpression.setName("parenthesized_expression")
 
 if DEBUG:

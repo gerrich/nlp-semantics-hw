@@ -6,9 +6,17 @@ mary hates john
 sam likes mary
 sam hates mary
 sam likes john
+dexter likes mary
+dexter likes john
+hero hates dexter
 .dump
-whom does mary like
 whom does sam like and hate
 who likes mary
-who likes john
 who likes mary and likes john
+
+who likes john
+how many people likes john
+
+whom does mary like
+how many human beings does mary like
+
